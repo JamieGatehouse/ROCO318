@@ -1,17 +1,13 @@
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 
-// called this way, it uses the default address 0x40
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
-// you can also call it with a different address you want
-//Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x41);
-// you can also call it with a different address and I2C interface
-//Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver(0x40, Wire);
 
-#define SERVOMIN  90 // This is the 'minimum' pulse length count (out of 4096)
-#define SERVOMAX  490 // This is the 'maximum' pulse length count (out of 4096)
-#define SERVO_FREQ 50 // Analog servos run at ~50 Hz updates
+#define SERVOMIN  90   // 'minimum' pulse length count (out of 4096)
+#define SERVOMAX  490  // 'maximum' pulse length count (out of 4096)
+#define SERVO_FREQ 50  // Analog servos run at ~50 Hz updates
 
+uint8_t servonum = 0;  // Servo channel number on PCA9685
 
 void setup() {
   Serial.begin(9600);
@@ -19,21 +15,30 @@ void setup() {
 
   pwm.begin();
   pwm.setOscillatorFrequency(27000000);
-  pwm.setPWMFreq(SERVO_FREQ);  // Analog servos run at ~50 Hz updates
+  pwm.setPWMFreq(SERVO_FREQ);
 
   delay(10);
 }
 
+void setServoAngle(uint8_t servonum, float angle) {
+  if (angle < 0) angle = 0;
+  if (angle > 285) angle = 285;
+
+  int pulselen = SERVOMIN + (angle / 285.0) * (SERVOMAX - SERVOMIN);
+  pwm.setPWM(servonum, 0, pulselen);
+}
 
 void loop() {
-  int pulselenmax = SERVOMAX;
-  pwm.setPWM(servonum, 0, pulselenmax);
+  setServoAngle(servonum, 45);
+  delay(2000);
 
-  delay(3000);
+  setServoAngle(servonum, 90);
+  delay(2000);
 
-  int pulselenmin = SERVOMIN;
-  pwm.setPWM(servonum, 0, pulselenmin);
+  setServoAngle(servonum, 180);
+  delay(2000);
 
-  delay(3000);
+  setServoAngle(servonum, 0);
+  delay(2000);
 }
 
