@@ -184,36 +184,60 @@ void moveToFrame(float target[8], int steps, int stepDelay) {
 
 void loop() {
 
-  float frame1[8] = {75,45,45,81,90,45,35,90};
-  float frame2[8] = {90,45,45,90,115,45,35,100};
-  float frame3[8] = {95,135,135,95,115,90,90,100};
-  float frame4[8] = {95,135,135,95,115,135,135,100};
-  float frame5[8] = {75,135,135,81,90,135,135,90};
-  float frame6[8] = {75,90,90,81,90,45,35,90};
-  float frame7[8] = {75,45,45,81,90,45,35,90};
+  //float frame1[8] = {97,95,95,90,97,92,87,93};
+
+  float frame1[8] = {97,120,120,90,97,117,112,93};
+  float frame2[8] = {78,120,120,90,78,117,112,74};
+  float frame3[8] = {97,95,95,100,78,92,87,100};
+  float frame4[8] = {107,70,70,90,107,70,62,93};
+  float frame5[8] = {120,70,70,109,107,70,62,93};
+  float frame6[8] = {120,90,70,90,107,62,62,93};
+  float frame7[8] = {120,95,95,90,107,122,122,93};
+  float frame8[8] = {120,95,95,90,107,122,122,93};
+
+
+  //float frame1[8] = {75,45,45,81,90,45,35,90};
+  //float frame2[8] = {90,45,45,90,115,45,35,100};
+  //float frame3[8] = {95,135,135,95,115,90,90,100};
+  //float frame4[8] = {95,135,135,95,115,135,135,100};
+  //float frame5[8] = {75,135,135,81,90,135,135,90};
+  //float frame6[8] = {75,90,90,81,90,45,35,90};
+  //float frame7[8] = {75,45,45,81,90,45,35,90};
 
   // smoother: more steps = slower/more fluid
   int transitionSteps = 40;   // try 20–60
   int stepDelay = 10;         // ms delay per step
 
   moveToFrame(frame1, transitionSteps, stepDelay);
-  delay(200);
+  Serial.println("1");
+  delay(2000);
 
   moveToFrame(frame2, transitionSteps, stepDelay);
-  delay(200);
+  Serial.println("2");
+  delay(2000);
 
   moveToFrame(frame3, transitionSteps, stepDelay);
-  delay(200);
+  Serial.println("3");
+  delay(2000);
 
   moveToFrame(frame4, transitionSteps, stepDelay);
-  delay(200);
+  Serial.println("4");
+  delay(2000);
 
   moveToFrame(frame5, transitionSteps, stepDelay);
-  delay(200);
+  Serial.println("5");
+  delay(2000);
 
   moveToFrame(frame6, transitionSteps, stepDelay);
-  delay(200);
+  Serial.println("6");
+  delay(2000);
 
   moveToFrame(frame7, transitionSteps, stepDelay);
-  delay(200);
+  Serial.println("7");
+  delay(2000);
+  
+  moveToFrame(frame8, transitionSteps, stepDelay);
+  Serial.println("8");
+  delay(2000);
+  
 }
