@@ -1,4 +1,4 @@
-#include <Wire.h>
+/*#include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
 
 Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
@@ -30,13 +30,13 @@ void setServoAngle(uint8_t servonum, float angle) {
 void loop() {
   
   //frame 1
-  setServoAngle(0, 81);
+  setServoAngle(0, 75);
   setServoAngle(1, 45);
   setServoAngle(2, 45);
   setServoAngle(3, 81);
   setServoAngle(4, 90);
   setServoAngle(5, 45);
-  setServoAngle(6, 45);
+  setServoAngle(6, 35);
   setServoAngle(7, 90);
   delay(2000);
 
@@ -48,7 +48,7 @@ void loop() {
   setServoAngle(3, 90);
   setServoAngle(4, 115);
   setServoAngle(5, 45);
-  setServoAngle(6, 45);
+  setServoAngle(6, 35);
   setServoAngle(7, 100);
   delay(2000);
 
@@ -78,7 +78,7 @@ void loop() {
 
 
   //frame 5
-  setServoAngle(0, 81);
+  setServoAngle(0, 75);
   setServoAngle(1, 135);
   setServoAngle(2, 135);
   setServoAngle(3, 81);
@@ -90,24 +90,130 @@ void loop() {
 
 
   //frame 6
-  setServoAngle(0, 81);
+  setServoAngle(0, 75);
   setServoAngle(1, 90);
   setServoAngle(2, 90);
   setServoAngle(3, 81);
   setServoAngle(4, 90);
   setServoAngle(5, 45);
-  setServoAngle(6, 45);
+  setServoAngle(6, 35);
   setServoAngle(7, 90);
   delay(2000);
  
   //frame 7
-  setServoAngle(0, 81);
+  setServoAngle(0, 75);
   setServoAngle(1, 45);
   setServoAngle(2, 45);
   setServoAngle(3, 81);
   setServoAngle(4, 90);
   setServoAngle(5, 45);
-  setServoAngle(6, 45);
+  setServoAngle(6, 35);
   setServoAngle(7, 90);
   delay(2000);
+}
+*/
+
+#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+
+#define SERVOMIN  90   // minimum pulse length
+#define SERVOMAX  490  // maximum pulse length
+#define SERVO_FREQ 50  // 50Hz servo rate
+
+// store current servo angles
+float currentAngles[8] = {90, 90, 90, 90, 90, 90, 90, 90};
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Smooth Gait Pattern");
+
+  pwm.begin();
+  pwm.setOscillatorFrequency(27000000);
+  pwm.setPWMFreq(SERVO_FREQ);
+
+  delay(10);
+}
+
+void setServoAngleRaw(uint8_t servonum, float angle) {
+  if (angle < 0) angle = 0;
+  if (angle > 285) angle = 285;
+
+  int pulselen = SERVOMIN + (angle / 285.0) * (SERVOMAX - SERVOMIN);
+  pwm.setPWM(servonum, 0, pulselen);
+}
+
+// --------------------------------------------------------
+// SMOOTH MOVEMENT FUNCTION
+// --------------------------------------------------------
+void smoothSetServoAngle(uint8_t servonum, float targetAngle, int steps, int stepDelay) {
+  float startAngle = currentAngles[servonum];
+  float stepSize = (targetAngle - startAngle) / (float)steps;
+
+  for (int i = 0; i < steps; i++) {
+    float newAngle = startAngle + stepSize * i;
+    setServoAngleRaw(servonum, newAngle);
+    delay(stepDelay);
+  }
+
+  // Final write & update internal angle tracker
+  setServoAngleRaw(servonum, targetAngle);
+  currentAngles[servonum] = targetAngle;
+}
+
+// --------------------------------------------------------
+// MOVE ALL SERVOS TO A "FRAME" SMOOTHLY
+// --------------------------------------------------------
+void moveToFrame(float target[8], int steps, int stepDelay) {
+  for (int s = 0; s < steps; s++) {
+    for (int i = 0; i < 8; i++) {
+      float start = currentAngles[i];
+      float diff  = target[i] - start;
+      float newAngle = start + diff * ((float)s / steps);
+      setServoAngleRaw(i, newAngle);
+    }
+    delay(stepDelay);
+  }
+
+  // finalize
+  for (int i = 0; i < 8; i++) {
+    currentAngles[i] = target[i];
+  }
+}
+
+void loop() {
+
+  float frame1[8] = {75,45,45,81,90,45,35,90};
+  float frame2[8] = {90,45,45,90,115,45,35,100};
+  float frame3[8] = {95,135,135,95,115,90,90,100};
+  float frame4[8] = {95,135,135,95,115,135,135,100};
+  float frame5[8] = {75,135,135,81,90,135,135,90};
+  float frame6[8] = {75,90,90,81,90,45,35,90};
+  float frame7[8] = {75,45,45,81,90,45,35,90};
+
+  // smoother: more steps = slower/more fluid
+  int transitionSteps = 40;   // try 20–60
+  int stepDelay = 10;         // ms delay per step
+
+  moveToFrame(frame1, transitionSteps, stepDelay);
+  delay(200);
+
+  moveToFrame(frame2, transitionSteps, stepDelay);
+  delay(200);
+
+  moveToFrame(frame3, transitionSteps, stepDelay);
+  delay(200);
+
+  moveToFrame(frame4, transitionSteps, stepDelay);
+  delay(200);
+
+  moveToFrame(frame5, transitionSteps, stepDelay);
+  delay(200);
+
+  moveToFrame(frame6, transitionSteps, stepDelay);
+  delay(200);
+
+  moveToFrame(frame7, transitionSteps, stepDelay);
+  delay(200);
 }
