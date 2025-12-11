@@ -104,7 +104,7 @@ delay(100);        //this delays for 100ms before repeating the gait cycle
 
 
 
-*/
+
 
 #include <Wire.h>
 #include <Adafruit_PWMServoDriver.h>
@@ -332,4 +332,3 @@ void loop() {
   displayStatus();      //this displays the current pitch status
   delay(100);       //this waits 100ms before repeating the cycle
 }
-*/
