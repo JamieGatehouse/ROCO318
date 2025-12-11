@@ -187,8 +187,8 @@ void loop() {
   //float frame1[8] = {97,95,95,90,97,92,87,93};
 
   float frame1[8] = {97,120,120,90,97,117,112,93};
-  float frame2[8] = {78,120,120,90,78,117,112,74};
-  float frame3[8] = {97,95,95,100,78,92,87,100};
+  float frame2[8] = {80,120,120,80,65,117,112,80};
+  float frame3[8] = {80,95,95,100,78,92,87,100};
   float frame4[8] = {107,70,70,90,107,70,62,93};
   float frame5[8] = {120,70,70,109,107,70,62,93};
   float frame6[8] = {120,90,70,90,107,62,62,93};
@@ -196,13 +196,7 @@ void loop() {
   float frame8[8] = {120,95,95,90,107,122,122,93};
 
 
-  //float frame1[8] = {75,45,45,81,90,45,35,90};
-  //float frame2[8] = {90,45,45,90,115,45,35,100};
-  //float frame3[8] = {95,135,135,95,115,90,90,100};
-  //float frame4[8] = {95,135,135,95,115,135,135,100};
-  //float frame5[8] = {75,135,135,81,90,135,135,90};
-  //float frame6[8] = {75,90,90,81,90,45,35,90};
-  //float frame7[8] = {75,45,45,81,90,45,35,90};
+
 
   // smoother: more steps = slower/more fluid
   int transitionSteps = 40;   // try 20–60
@@ -210,34 +204,198 @@ void loop() {
 
   moveToFrame(frame1, transitionSteps, stepDelay);
   Serial.println("1");
-  delay(2000);
+  delay(200);
 
   moveToFrame(frame2, transitionSteps, stepDelay);
   Serial.println("2");
-  delay(2000);
+  delay(200);
 
   moveToFrame(frame3, transitionSteps, stepDelay);
   Serial.println("3");
-  delay(2000);
+  delay(200);
 
   moveToFrame(frame4, transitionSteps, stepDelay);
   Serial.println("4");
-  delay(2000);
+  delay(200);
 
   moveToFrame(frame5, transitionSteps, stepDelay);
   Serial.println("5");
-  delay(2000);
+  delay(200);
 
   moveToFrame(frame6, transitionSteps, stepDelay);
   Serial.println("6");
-  delay(2000);
+  delay(200);
 
   moveToFrame(frame7, transitionSteps, stepDelay);
   Serial.println("7");
-  delay(2000);
+  delay(100);
   
   moveToFrame(frame8, transitionSteps, stepDelay);
   Serial.println("8");
-  delay(2000);
+  delay(100);
   
 }
+
+
+
+
+/*#include <Wire.h>
+#include <Adafruit_PWMServoDriver.h>
+#include <Adafruit_MPU6050.h>
+#include <Adafruit_Sensor.h>
+
+Adafruit_PWMServoDriver pwm = Adafruit_PWMServoDriver();
+Adafruit_MPU6050 mpu;
+
+#define SERVOMIN  90   // minimum pulse length
+#define SERVOMAX  490  // maximum pulse length
+#define SERVO_FREQ 50  // 50Hz servo rate
+
+// store current servo angles
+float currentAngles[8] = {90, 90, 90, 90, 90, 90, 90, 90};
+
+// timing for MPU readings
+unsigned long lastMPURead = 0;
+const unsigned long mpuReadInterval = 100; // read every 100ms
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Smooth Gait Pattern with MPU-6050");
+
+  // Initialize PWM servo driver
+  pwm.begin();
+  pwm.setOscillatorFrequency(27000000);
+  pwm.setPWMFreq(SERVO_FREQ);
+
+  // Initialize MPU6050
+  if (!mpu.begin()) {
+    Serial.println("Failed to find MPU6050 chip");
+    while (1) {
+      delay(10);
+    }
+  }
+  Serial.println("MPU6050 Found!");
+
+  // Configure MPU6050 settings
+  mpu.setAccelerometerRange(MPU6050_RANGE_8_G);
+  mpu.setGyroRange(MPU6050_RANGE_500_DEG);
+  mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
+
+  Serial.println("");
+  delay(100);
+}
+
+void setServoAngleRaw(uint8_t servonum, float angle) {
+  if (angle < 0) angle = 0;
+  if (angle > 285) angle = 285;
+
+  int pulselen = SERVOMIN + (angle / 285.0) * (SERVOMAX - SERVOMIN);
+  pwm.setPWM(servonum, 0, pulselen);
+}
+
+// --------------------------------------------------------
+// READ AND DISPLAY MPU6050 DATA
+// --------------------------------------------------------
+void readMPU6050() {
+  sensors_event_t a, g, temp;
+  mpu.getEvent(&a, &g, &temp);
+
+  Serial.println("=== MPU-6050 Readings ===");
+  
+  // Accelerometer data (m/s^2)
+  Serial.print("Accel X: "); Serial.print(a.acceleration.x, 2);
+  Serial.print(" | Y: "); Serial.print(a.acceleration.y, 2);
+  Serial.print(" | Z: "); Serial.println(a.acceleration.z, 2);
+  
+  // Gyroscope data (rad/s)
+  Serial.print("Gyro X: "); Serial.print(g.gyro.x, 2);
+  Serial.print(" | Y: "); Serial.print(g.gyro.y, 2);
+  Serial.print(" | Z: "); Serial.println(g.gyro.z, 2);
+  
+  // Temperature
+  Serial.print("Temp: "); Serial.print(temp.temperature); Serial.println(" °C");
+  Serial.println("========================");
+  Serial.println();
+}
+
+// --------------------------------------------------------
+// MOVE ALL SERVOS TO A "FRAME" SMOOTHLY
+// --------------------------------------------------------
+void moveToFrame(float target[8], int steps, int stepDelay) {
+  for (int s = 0; s < steps; s++) {
+    for (int i = 0; i < 8; i++) {
+      float start = currentAngles[i];
+      float diff  = target[i] - start;
+      float newAngle = start + diff * ((float)s / steps);
+      setServoAngleRaw(i, newAngle);
+    }
+    delay(stepDelay);
+    
+    // Read MPU data periodically during movement
+    if (millis() - lastMPURead >= mpuReadInterval) {
+      readMPU6050();
+      lastMPURead = millis();
+    }
+  }
+
+  // finalize
+  for (int i = 0; i < 8; i++) {
+    currentAngles[i] = target[i];
+  }
+}
+
+void loop() {
+
+  float frame1[8] = {97,120,120,90,97,117,112,93};
+  float frame2[8] = {80,120,120,80,65,117,112,80};
+  float frame3[8] = {80,95,95,100,78,92,87,100};
+  float frame4[8] = {107,70,70,90,107,70,62,93};
+  float frame5[8] = {120,70,70,109,107,70,62,93};
+  float frame6[8] = {120,90,70,90,107,62,62,93};
+  float frame7[8] = {120,95,95,90,107,122,122,93};
+  float frame8[8] = {120,95,95,90,107,122,122,93};
+
+  // smoother: more steps = slower/more fluid
+  int transitionSteps = 40;   // try 20–60
+  int stepDelay = 10;         // ms delay per step
+
+  moveToFrame(frame1, transitionSteps, stepDelay);
+  Serial.println("Frame 1");
+  readMPU6050();
+  delay(200);
+
+  moveToFrame(frame2, transitionSteps, stepDelay);
+  Serial.println("Frame 2");
+  readMPU6050();
+  delay(200);
+
+  moveToFrame(frame3, transitionSteps, stepDelay);
+  Serial.println("Frame 3");
+  readMPU6050();
+  delay(200);
+
+  moveToFrame(frame4, transitionSteps, stepDelay);
+  Serial.println("Frame 4");
+  readMPU6050();
+  delay(200);
+
+  moveToFrame(frame5, transitionSteps, stepDelay);
+  Serial.println("Frame 5");
+  readMPU6050();
+  delay(200);
+
+  moveToFrame(frame6, transitionSteps, stepDelay);
+  Serial.println("Frame 6");
+  readMPU6050();
+  delay(200);
+
+  moveToFrame(frame7, transitionSteps, stepDelay);
+  Serial.println("Frame 7");
+  readMPU6050();
+  delay(100);
+  
+  moveToFrame(frame8, transitionSteps, stepDelay);
+  Serial.println("Frame 8");
+  readMPU6050();
+  delay(100);
+}*/
